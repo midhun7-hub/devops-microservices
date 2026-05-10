@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Microservice Frontend</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            outline: none;
+        }
+        input[type="text"]:focus {
+            border-color: #3498db;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            background-color: #3498db;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        button.refresh {
+            background-color: #2ecc71;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        button.refresh:hover {
+            background-color: #27ae60;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            background: #fff;
+            padding: 12px;
+            border: 1px solid #eee;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+        }
+        li::before {
+            content: "➤";
+            margin-right: 10px;
+            color: #3498db;
+            font-size: 0.8em;
+        }
+        .message-section {
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .status {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 15px;
+            text-align: center;
+            font-style: italic;
+        }
+        .empty-msg {
+            text-align: center;
+            color: #999;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Queue Manager</h1>
+    
+    <div class="container">
+        <div class="input-group">
+            <input type="text" id="messageInput" placeholder="Type a message to add to queue...">
+            <button onclick="addMessage()">Add</button>
+        </div>
+
+        <button class="refresh" onclick="fetchQueue()">Refresh Queue</button>
+
+        <div class="message-section">
+            <ul id="queueList"></ul>
+        </div>
+
+        <div id="status" class="status">Ready</div>
+    </div>
+
+    <script>
+        const API_BASE = '';
+
+        async function addMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            const statusDiv = document.getElementById('status');
+
+            if (!message) {
+                statusDiv.innerText = 'Please enter a message';
+                return;
+            }
+
+            statusDiv.innerText = 'Adding message...';
+
+            try {
+                const response = await fetch(`${API_BASE}/add`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ message })
+                });
+
+                if (response.ok) {
+                    input.value = '';
+                    statusDiv.innerText = 'Message added successfully!';
+                    fetchQueue(); // Automatically refresh after adding
+                } else {
+                    const err = await response.json();
+                    statusDiv.innerText = `Error: ${err.error || 'Failed to add'}`;
+                }
+            } catch (error) {
+                console.error('Error adding message:', error);
+                statusDiv.innerText = 'Error connecting to backend';
+            }
+        }
+
+        async function fetchQueue() {
+            const queueList = document.getElementById('queueList');
+            const statusDiv = document.getElementById('status');
+            
+            statusDiv.innerText = 'Fetching queue...';
+
+            try {
+                const response = await fetch(`${API_BASE}/queue`);
+                const data = await response.json();
+
+                queueList.innerHTML = '';
+                
+                if (data.queue && data.queue.length > 0) {
+                    data.queue.forEach(msg => {
+                        const li = document.createElement('li');
+                        li.textContent = msg;
+                        queueList.appendChild(li);
+                    });
+                    statusDiv.innerText = 'Queue updated';
+                } else {
+                    queueList.innerHTML = '<div class="empty-msg">Queue is currently empty</div>';
+                    statusDiv.innerText = 'Queue is empty';
+                }
+            } catch (error) {
+                console.error('Error fetching queue:', error);
+                statusDiv.innerText = 'Error fetching queue - is backend running?';
+            }
+        }
+
+        // Initial fetch when page loads
+        document.addEventListener('DOMContentLoaded', fetchQueue);
+    </script>
+</body>
+</html>

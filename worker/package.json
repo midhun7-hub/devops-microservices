@@ -1,0 +1,12 @@
+{
+  "name": "worker",
+  "version": "1.0.0",
+  "description": "Worker service for microservices-devops",
+  "main": "worker.js",
+  "scripts": {
+    "start": "node worker.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.0"
+  }
+}
