@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: backend
-        image: backend-service
-        imagePullPolicy: Never
+        image: midhun2710/devops-backend:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 3000

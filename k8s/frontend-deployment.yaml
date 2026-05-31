@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: frontend-service
-        imagePullPolicy: Never
+        image: midhun2710/devops-frontend:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 80
